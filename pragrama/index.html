@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="theme-color" content="#111827">
+<meta name="description" content="Sistema de controle de preventivas de CFTV">
+
+<link rel="manifest" href="./manifest.json">
+
+<title>Preventivas CFTV</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    color: #111827;
+}
+
+header {
+    background: #111827;
+    color: white;
+    padding: 22px 16px;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0 0 6px;
+    font-size: 26px;
+}
+
+header p {
+    margin: 0;
+    opacity: .8;
+}
+
+main {
+    max-width: 1100px;
+    margin: auto;
+    padding: 18px;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.card {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 2px 8px #0001;
+}
+
+.card strong {
+    display: block;
+    font-size: 28px;
+    margin-top: 6px;
+}
+
+form,
+.filtros,
+.item {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 2px 8px #0001;
+    margin-bottom: 18px;
+}
+
+h2 {
+    margin-top: 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+label {
+    font-weight: bold;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+input,
+textarea,
+select,
+button {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    font: inherit;
+}
+
+textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+button {
+    border: 0;
+    background: #111827;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: .9;
+}
+
+.btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.btns button {
+    width: auto;
+    padding: 9px 13px;
+}
+
+.success {
+    background: #16a34a;
+}
+
+.warn {
+    background: #d97706;
+}
+
+.danger {
+    background: #dc2626;
+}
+
+.secondary {
+    background: #4b5563;
+}
+
+.status {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.pendente {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.concluida {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.vazio {
+    text-align: center;
+    color: #6b7280;
+    padding: 20px;
+}
+
+#mensagem {
+    display: none;
+    padding: 12px;
+    border-radius: 9px;
+    margin-bottom: 15px;
+    background: #fee2e2;
+    color: #991b1b;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 700px) {
+    .cards {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    main {
+        padding: 12px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>📹 Preventivas CFTV</h1>
+    <p>Controle mensal das manutenções</p>
+</header>
+
+<main>
+
+<div id="mensagem"></div>
+
+<section class="cards">
+
+    <div class="card">
+        Total
+        <strong id="total">0</strong>
+    </div>
+
+    <div class="card">
+        Pendentes
+        <strong id="pendentes">0</strong>
+    </div>
+
+    <div class="card">
+        Concluídas
+        <strong id="concluidas">0</strong>
+    </div>
+
+</section>
+
+<form id="formulario">
+
+    <h2 id="tituloForm">➕ Nova preventiva</h2>
+
+    <div class="grid">
+
+        <div>
+            <label>Nome do cliente</label>
+            <input id="nome" required>
+        </div>
+
+        <div>
+            <label>Telefone</label>
+            <input id="telefone">
+        </div>
+
+        <div>
+            <label>Data da preventiva</label>
+            <input id="data" type="date" required>
+        </div>
+
+        <div>
+            <label>Número de câmeras</label>
+            <input id="cameras" type="number" min="0" value="1">
+        </div>
+
+    </div>
+
+    <div style="margin-top:12px">
+        <label>Endereço</label>
+        <input id="endereco" required>
+    </div>
+
+    <div style="margin-top:12px">
+        <label>Observações</label>
+        <textarea id="observacoes"></textarea>
+    </div>
+
+    <div class="btns">
+
+        <button type="submit" id="btnSalvar">
+            Salvar preventiva
+        </button>
+
+        <button
+            type="button"
+            class="secondary"
+            id="btnCancelar"
+            style="display:none">
+            Cancelar edição
+        </button>
+
+    </div>
+
+</form>
+
+<section class="filtros">
+
+    <h2>🔎 Pesquisar</h2>
+
+    <div class="grid">
+
+        <input
+            id="busca"
+            placeholder="Cliente ou endereço">
+
+        <select id="filtroStatus">
+
+            <option value="">
+                Todos os status
+            </option>
+
+            <option value="pendente">
+                Pendentes
+            </option>
+
+            <option value="concluida">
+                Concluídas
+            </option>
+
+        </select>
+
+        <input id="filtroMes" type="month">
+
+    </div>
+
+</section>
+
+<section id="lista"></section>
+
+</main>
+
+<script>
+
+const SUPABASE_URL =
+    "https://jipelbndqkgykgtctxtt.supabase.co";
+
+const SUPABASE_KEY =
+    "sb_publishable_ng73CAQQa60Tl7afiTIJfQ_NVxPQFbx";
+
+const API =
+    SUPABASE_URL + "/rest/v1/PREVENTIVA";
+
+let registros = [];
+let editando = null;
+
+
+function headers(extra = {}) {
+
+    return {
+
+        "apikey": SUPABASE_KEY,
+
+        "Authorization":
+            "Bearer " + SUPABASE_KEY,
+
+        "Content-Type":
+            "application/json",
+
+        ...extra
+    };
+}
+
+
+function mostrarErro(msg) {
+
+    const el =
+        document.getElementById("mensagem");
+
+    el.textContent = msg;
+
+    el.style.display = "block";
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+function limparErro() {
+
+    document.getElementById(
+        "mensagem"
+    ).style.display = "none";
+
+}
+
+
+function escapeHtml(valor) {
+
+    return String(valor ?? "")
+        .replace(
+            /[&<>"']/g,
+            c => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[c])
+        );
+
+}
+
+
+async function respostaJson(res) {
+
+    const texto =
+        await res.text();
+
+    let dados = null;
+
+    try {
+
+        dados =
+            texto
+                ? JSON.parse(texto)
+                : null;
+
+    } catch {}
+
+    if (!res.ok) {
+
+        const detalhe =
+            dados?.message ||
+            dados?.error ||
+            texto ||
+            ("HTTP " + res.status);
+
+        throw new Error(detalhe);
+    }
+
+    return dados;
+}
+
+
+async function carregar() {
+
+    limparErro();
+
+    try {
+
+        const res =
+            await fetch(
+                API +
+                "?select=*&order=data.asc",
+                {
+                    headers: headers()
+                }
+            );
+
+        registros =
+            await respostaJson(res) || [];
+
+        renderizar();
+
+    } catch (e) {
+
+        mostrarErro(
+            "Erro ao carregar preventivas:\n" +
+            e.message
+        );
+
+    }
+
+}
+
+
+function renderizar() {
+
+    const busca =
+        document
+            .getElementById("busca")
+            .value
+            .toLowerCase()
+            .trim();
+
+    const status =
+        document
+            .getElementById("filtroStatus")
+            .value;
+
+    const mes =
+        document
+            .getElementById("filtroMes")
+            .value;
+
+
+    document.getElementById("total")
+        .textContent =
+        registros.length;
+
+
+    document.getElementById("pendentes")
+        .textContent =
+        registros.filter(
+            x =>
+                String(x.status || "")
+                    .toLowerCase() ===
+                "pendente"
+        ).length;
+
+
+    document.getElementById("concluidas")
+        .textContent =
+        registros.filter(
+            x =>
+                String(x.status || "")
+                    .toLowerCase() ===
+                "concluida"
+        ).length;
+
+
+    const filtrados =
+        registros.filter(x => {
+
+            const texto =
+                (
+                    String(x.nome || "") +
+                    " " +
+                    String(x.endereco || "")
+                ).toLowerCase();
+
+            const okBusca =
+                !busca ||
+                texto.includes(busca);
+
+            const okStatus =
+                !status ||
+                String(x.status || "")
+                    .toLowerCase() ===
+                status;
+
+            const okMes =
+                !mes ||
+                String(x.data || "")
+                    .startsWith(mes);
+
+            return (
+                okBusca &&
+                okStatus &&
+                okMes
+            );
+
+        });
+
+
+    const lista =
+        document.getElementById("lista");
+
+
+    if (!filtrados.length) {
+
+        lista.innerHTML =
+            '<div class="item vazio">' +
+            'Nenhuma preventiva encontrada.' +
+            '</div>';
+
+        return;
+    }
+
+
+    lista.innerHTML =
+        filtrados.map(x => {
+
+            const statusAtual =
+                String(
+                    x.status ||
+                    "pendente"
+                ).toLowerCase();
+
+            const concluida =
+                statusAtual ===
+                "concluida";
+
+            const indiceReal =
+                registros.indexOf(x);
+
+
+            return `
+
+            <article class="item">
+
+                <span class="status ${
+                    concluida
+                        ? "concluida"
+                        : "pendente"
+                }">
+
+                    ${
+                        concluida
+                            ? "CONCLUÍDA"
+                            : "PENDENTE"
+                    }
+
+                </span>
+
+                <h3>
+                    ${escapeHtml(x.nome)}
+                </h3>
+
+                <p>
+                    📅 <b>Data:</b>
+                    ${escapeHtml(x.data)}
+                </p>
+
+                <p>
+                    📞 <b>Telefone:</b>
+                    ${escapeHtml(x.telefone)}
+                </p>
+
+                <p>
+                    📷 <b>Câmeras:</b>
+                    ${escapeHtml(x.cameras)}
+                </p>
+
+                <p>
+                    📍 <b>Endereço:</b>
+                    ${escapeHtml(x.endereco)}
+                </p>
+
+                <p>
+                    📝 <b>Observações:</b>
+                    ${escapeHtml(
+                        x.observacoes || "—"
+                    )}
+                </p>
+
+                <div class="btns">
+
+                    <button
+                        class="${
+                            concluida
+                                ? "warn"
+                                : "success"
+                        }"
+                        onclick="alterarStatus(
+                            ${indiceReal},
+                            '${
+                                concluida
+                                    ? "pendente"
+                                    : "concluida"
+                            }'
+                        )">
+
+                        ${
+                            concluida
+                                ? "↩ Reabrir"
+                                : "✅ Concluir"
+                        }
+
+                    </button>
+
+                    <button
+                        class="secondary"
+                        onclick="editar(${indiceReal})">
+
+                        ✏️ Editar
+
+                    </button>
+
+                    <button
+                        class="danger"
+                        onclick="excluir(${indiceReal})">
+
+                        🗑️ Excluir
+
+                    </button>
+
+                </div>
+
+            </article>
+
+            `;
+
+        }).join("");
+
+}
+
+
+function preencher(x) {
+
+    document.getElementById("nome").value =
+        x.nome || "";
+
+    document.getElementById("telefone").value =
+        x.telefone || "";
+
+    document.getElementById("data").value =
+        x.data || "";
+
+    document.getElementById("cameras").value =
+        x.cameras ?? 1;
+
+    document.getElementById("endereco").value =
+        x.endereco || "";
+
+    document.getElementById("observacoes").value =
+        x.observacoes || "";
+
+}
+
+
+function editar(i) {
+
+    editando = i;
+
+    preencher(
+        registros[i]
+    );
+
+    document.getElementById(
+        "tituloForm"
+    ).textContent =
+        "✏️ Editar preventiva";
+
+    document.getElementById(
+        "btnSalvar"
+    ).textContent =
+        "Salvar alterações";
+
+    document.getElementById(
+        "btnCancelar"
+    ).style.display =
+        "block";
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+function limparForm() {
+
+    document
+        .getElementById("formulario")
+        .reset();
+
+    document.getElementById(
+        "cameras"
+    ).value = 1;
+
+    editando = null;
+
+    document.getElementById(
+        "tituloForm"
+    ).textContent =
+        "➕ Nova preventiva";
+
+    document.getElementById(
+        "btnSalvar"
+    ).textContent =
+        "Salvar preventiva";
+
+    document.getElementById(
+        "btnCancelar"
+    ).style.display =
+        "none";
+
+}
+
+
+async function salvar(e) {
+
+    e.preventDefault();
+
+    limparErro();
+
+
+    const dados = {
+
+        nome:
+            document.getElementById(
+                "nome"
+            ).value.trim(),
+
+        telefone:
+            document.getElementById(
+                "telefone"
+            ).value.trim(),
+
+        data:
+            document.getElementById(
+                "data"
+            ).value,
+
+        cameras:
+            Number(
+                document.getElementById(
+                    "cameras"
+                ).value || 0
+            ),
+
+        endereco:
+            document.getElementById(
+                "endereco"
+            ).value.trim(),
+
+        observacoes:
+            document.getElementById(
+                "observacoes"
+            ).value.trim()
+
+    };
+
+
+    try {
+
+        if (editando === null) {
+
+            dados.status =
+                "pendente";
+
+
+            const res =
+                await fetch(
+                    API,
+                    {
+                        method: "POST",
+
+                        headers: headers({
+                            "Prefer":
+                                "return=representation"
+                        }),
+
+                        body:
+                            JSON.stringify(
+                                dados
+                            )
+                    }
+                );
+
+
+            await respostaJson(res);
+
+            alert(
+                "Preventiva cadastrada!"
+            );
+
+        } else {
+
+            const antigo =
+                registros[editando];
+
+            const filtro =
+                construirFiltro(
+                    antigo
+                );
+
+
+            const res =
+                await fetch(
+                    API + "?" + filtro,
+                    {
+                        method: "PATCH",
+
+                        headers: headers({
+                            "Prefer":
+                                "return=representation"
+                        }),
+
+                        body:
+                            JSON.stringify(
+                                dados
+                            )
+                    }
+                );
+
+
+            const retorno =
+                await respostaJson(res);
+
+
+            if (
+                !Array.isArray(retorno) ||
+                retorno.length === 0
+            ) {
+
+                throw new Error(
+                    "Nenhuma linha foi encontrada para editar."
+                );
+
+            }
+
+
+            alert(
+                "Preventiva alterada!"
+            );
+
+        }
+
+
+        limparForm();
+
+        await carregar();
+
+
+    } catch (e) {
+
+        mostrarErro(
+            "Erro ao salvar:\n" +
+            e.message
+        );
+
+    }
+
+}
+
+
+function construirFiltro(x) {
+
+    const campos = [
+        "nome",
+        "telefone",
+        "data",
+        "cameras",
+        "endereco",
+        "observacoes",
+        "status"
+    ];
+
+    const partes = [];
+
+
+    for (
+        const campo of campos
+    ) {
+
+        let valor =
+            x[campo];
+
+
+        if (
+            valor === null ||
+            valor === undefined
+        ) {
+
+            partes.push(
+                campo +
+                "=is.null"
+            );
+
+        } else {
+
+            valor =
+                String(valor)
+                    .replace(
+                        /"/g,
+                        '\\"'
+                    );
+
+            partes.push(
+                campo +
+                "=eq." +
+                encodeURIComponent(
+                    valor
+                )
+            );
+
+        }
+
+    }
+
+
+    return partes.join("&");
+
+}
+
+
+async function alterarStatus(
+    i,
+    novoStatus
+) {
+
+    limparErro();
+
+    const x =
+        registros[i];
+
+
+    try {
+
+        const filtro =
+            construirFiltro(x);
+
+
+        const res =
+            await fetch(
+                API + "?" + filtro,
+                {
+                    method: "PATCH",
+
+                    headers: headers({
+                        "Prefer":
+                            "return=representation"
+                    }),
+
+                    body:
+                        JSON.stringify({
+                            status:
+                                novoStatus
+                        })
+                }
+            );
+
+
+        const retorno =
+            await respostaJson(res);
+
+
+        if (
+            !Array.isArray(retorno) ||
+            retorno.length === 0
+        ) {
+
+            throw new Error(
+                "Nenhuma linha encontrada. Verifique os dados da preventiva."
+            );
+
+        }
+
+
+        await carregar();
+
+
+    } catch (e) {
+
+        mostrarErro(
+            "Erro ao alterar status:\n" +
+            e.message
+        );
+
+    }
+
+}
+
+
+async function excluir(i) {
+
+    limparErro();
+
+
+    if (
+        !confirm(
+            "Excluir esta preventiva?"
+        )
+    ) {
+        return;
+    }
+
+
+    const x =
+        registros[i];
+
+
+    try {
+
+        const filtro =
+            construirFiltro(x);
+
+
+        const res =
+            await fetch(
+                API + "?" + filtro,
+                {
+                    method: "DELETE",
+
+                    headers: headers({
+                        "Prefer":
+                            "return=representation"
+                    })
+                }
+            );
+
+
+        const retorno =
+            await respostaJson(res);
+
+
+        if (
+            !Array.isArray(retorno) ||
+            retorno.length === 0
+        ) {
+
+            throw new Error(
+                "Nenhuma linha encontrada para excluir."
+            );
+
+        }
+
+
+        await carregar();
+
+
+    } catch (e) {
+
+        mostrarErro(
+            "Erro ao excluir:\n" +
+            e.message
+        );
+
+    }
+
+}
+
+
+document
+    .getElementById("formulario")
+    .addEventListener(
+        "submit",
+        salvar
+    );
+
+
+document
+    .getElementById("btnCancelar")
+    .addEventListener(
+        "click",
+        limparForm
+    );
+
+
+document
+    .getElementById("busca")
+    .addEventListener(
+        "input",
+        renderizar
+    );
+
+
+document
+    .getElementById("filtroStatus")
+    .addEventListener(
+        "change",
+        renderizar
+    );
+
+
+document
+    .getElementById("filtroMes")
+    .addEventListener(
+        "change",
+        renderizar
+    );
+
+
+/* ATIVA O APP PWA */
+
+if (
+    "serviceWorker" in navigator
+) {
+
+    window.addEventListener(
+        "load",
+        () => {
+
+            navigator.serviceWorker
+                .register("./sw.js")
+                .then(() => {
+                    console.log(
+                        "Preventivas CFTV: aplicativo ativado."
+                    );
+                })
+                .catch(erro => {
+                    console.error(
+                        "Erro no Service Worker:",
+                        erro
+                    );
+                });
+
+        }
+    );
+
+}
+
+
+carregar();
+
+</script>
+
+</body>
+</html>
